@@ -107,7 +107,7 @@ const VideoPlayer: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
         <div className="flex flex-row bg-white">
           {/* Video Player */}
-          <div className={`${showBoard ? 'w-[70%]' : 'w-full'} relative z-0 bg-black transition-all duration-300`}>
+          <div className={`${showBoard ? 'w-[30%]' : 'w-full'} relative z-0 bg-black transition-all duration-300`}>
             <video
               ref={videoRef}
               className="w-full h-[50vh] md:h-[60vh] lg:h-[70vh] object-cover"
@@ -202,7 +202,7 @@ const VideoPlayer: React.FC = () => {
 
           {/* Interactive Keywords Board */}
           {showBoard && (
-            <div className="w-[30%] h-[50vh] md:h-[60vh] lg:h-[70vh] bg-white border-l border-gray-200 relative z-10">
+            <div className="w-[70%] h-[50vh] md:h-[60vh] lg:h-[70vh] bg-white border-l border-gray-200 relative z-10">
               <KeywordsBoard 
                 currentTime={currentTime} 
                 transcriptData={transcriptData}

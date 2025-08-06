@@ -1,170 +1,95 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { TranscriptItem } from '../types/transcript';
-import { Lightbulb } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 
 interface KeywordsBoardProps {
   currentTime: number;
   transcriptData: TranscriptItem[];
 }
 
-interface KeywordState {
-  text: string;
-  appearedAt: number;
-  endTime: number;
-  isTyping: boolean;
-  displayedText: string;
-  isComplete: boolean;
-  isWriting: boolean;
-  shouldDisappear: boolean;
-  importance: number;
-  id: string;
-}
-
 const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptData }) => {
-  const [keywords, setKeywords] = useState<KeywordState[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Keyword management
-  useEffect(() => {
-    const newKeywords: KeywordState[] = [];
-    
-    transcriptData?.forEach(item => {
-      item.keywords?.forEach(keyword => {
-        if (currentTime >= keyword.start && currentTime <= keyword.end + 2) {
-          const exists = keywords.some(k => 
-            k.text === keyword.word && k.appearedAt === keyword.start
-          );
-          
-          if (!exists) {
-            newKeywords.push({
-              text: keyword.word,
-              appearedAt: keyword.start,
-              endTime: keyword.end,
-              isTyping: true,
-              displayedText: '',
-              isComplete: false,
-              isWriting: true,
-              shouldDisappear: false,
-              importance: Math.min(2, Math.floor(Math.random() * 3)),
-              id: `${keyword.word}-${keyword.start}-${Date.now()}`
-            });
-          }
-        }
-      });
-    });
-
-    if (newKeywords.length > 0) {
-      setKeywords(prev => [
-        ...prev.filter(k => currentTime <= k.endTime + 2),
-        ...newKeywords
-      ]);
-    }
-
-    setKeywords(prev => 
-      prev.map(k => ({
-        ...k,
-        shouldDisappear: currentTime > k.endTime + 2
-      })).filter(k => !k.shouldDisappear)
+  // Get current transcript item
+  const getCurrentSentence = () => {
+    return transcriptData.find(
+      (item) => currentTime >= item.startTime && currentTime <= item.endTime
     );
-  }, [currentTime, transcriptData, keywords]);
-
-  // Typing effect
-  useEffect(() => {
-    const intervals: NodeJS.Timeout[] = [];
-
-    keywords.forEach(keyword => {
-      if (keyword.isTyping && keyword.displayedText.length < keyword.text.length) {
-        const interval = setInterval(() => {
-          setKeywords(prev => prev.map(k => {
-            if (k.id === keyword.id && k.displayedText.length < k.text.length) {
-              const charsToAdd = Math.random() > 0.7 ? 2 : 1;
-              const newDisplayedText = k.text.substring(
-                0, Math.min(k.displayedText.length + charsToAdd, k.text.length)
-              );
-              const isComplete = newDisplayedText.length === k.text.length;
-
-              return {
-                ...k,
-                displayedText: newDisplayedText,
-                isTyping: !isComplete,
-                isComplete,
-                isWriting: !isComplete
-              };
-            }
-            return k;
-          }));
-        }, 50 + Math.random() * 30);
-
-        intervals.push(interval);
-      }
-    });
-
-    return () => intervals.forEach(clearInterval);
-  }, [keywords]);
-
-  const getBaseSize = (importance: number) => {
-    const sizes = ['text-2xl', 'text-3xl', 'text-4xl'];
-    return sizes[Math.min(importance, sizes.length - 1)];
   };
 
-  const visibleKeywords = keywords.filter(k => !k.shouldDisappear);
+  const currentSentence = getCurrentSentence();
+
+  // Highlight keywords in the current text
+  const highlightKeywords = (text: string, keywords: any[]) => {
+    if (!keywords || keywords.length === 0) return text;
+
+    let highlightedText = text;
+    
+    // Sort keywords by length (longest first) to avoid partial replacements
+    const sortedKeywords = [...keywords].sort((a, b) => b.word.length - a.word.length);
+    
+    sortedKeywords.forEach((keyword) => {
+      const regex = new RegExp(`\\b${keyword.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      highlightedText = highlightedText.replace(regex, `<mark class="keyword-highlight">$&</mark>`);
+    });
+
+    return highlightedText;
+  };
+
+  const themeClasses = {
+    container: isDarkMode 
+      ? 'bg-gray-900 text-white' 
+      : 'bg-white text-gray-900',
+    modeButton: isDarkMode
+      ? 'bg-gray-800 hover:bg-gray-700 text-white'
+      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+  };
 
   return (
-    <div className="h-full w-full flex flex-col bg-white border-l border-gray-200">
-      {/* Header */}
-      <div className="flex items-center p-6 border-b border-gray-200">
-        <Lightbulb className="w-6 h-6 text-blue-600 mr-2" />
-        <h3 className="text-xl font-bold text-gray-800">Key Concepts</h3>
+    <div className={`h-full w-full flex flex-col ${themeClasses.container} relative`}>
+      {/* Mode Toggle Button */}
+      <button
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className={`absolute top-4 right-4 p-2 rounded-lg transition-colors z-10 ${themeClasses.modeButton}`}
+      >
+        {isDarkMode ? (
+          <Sun className="w-5 h-5" />
+        ) : (
+          <Moon className="w-5 h-5" />
+        )}
+      </button>
+
+      {/* Current Speech Text */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        {currentSentence ? (
+          <div className="text-center max-w-full">
+            <p 
+              className="text-2xl md:text-3xl lg:text-4xl leading-relaxed font-medium"
+              dangerouslySetInnerHTML={{
+                __html: highlightKeywords(currentSentence.text, currentSentence.keywords)
+              }}
+            />
+          </div>
+        ) : (
+          <div className="text-center">
+            <p className={`text-xl font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Speech will appear here as the video plays
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Keywords List */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="flex flex-col gap-8">
-          {visibleKeywords.map((keyword) => (
-            <div 
-              key={keyword.id}
-              className="group"
-            >
-              <span 
-                className={`
-                  ${getBaseSize(keyword.importance)}
-                  font-bold text-gray-800
-                  transition-all duration-300 ease-out
-                  group-hover:scale-105
-                  ${keyword.isWriting ? 'font-mono' : ''}
-                  inline-block
-                  origin-left
-                `}
-                style={{
-                  wordSpacing: '0.3rem',
-                  letterSpacing: keyword.isWriting ? '0.1rem' : '0.05rem',
-                  lineHeight: '1.2'
-                }}
-              >
-                {keyword.displayedText}
-                {keyword.isTyping && (
-                  <span className="ml-1 text-blue-400 animate-pulse">|</span>
-                )}
-              </span>
-            </div>
-          ))}
-          
-          {visibleKeywords.length === 0 && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium text-gray-500">
-                  Keywords will appear as the video plays
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200 text-sm text-gray-500 text-center">
-        {visibleKeywords.length} active concepts
-      </div>
+      <style jsx>{`
+        .keyword-highlight {
+          background: linear-gradient(120deg, #3B82F6 0%, #8B5CF6 100%);
+          color: white;
+          padding: 2px 6px;
+          border-radius: 6px;
+          font-weight: 600;
+          box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+          margin: 0 2px;
+        }
+      `}</style>
     </div>
   );
 };
