@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import TranscriptViewer from './TranscriptViewer';
 import KeywordsBoard from './KeywordsBoard';
-import { Play, Pause, Volume2, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import FileUploader from './FileUploader';
+import { Play, Pause, Volume2, PanelLeftOpen, PanelLeftClose, Upload } from 'lucide-react';
 import { transcriptData } from '../data/transcriptData';
 
 const VideoPlayer: React.FC = () => {
@@ -12,6 +13,9 @@ const VideoPlayer: React.FC = () => {
   const [showBoard, setShowBoard] = useState(true);
   const [volume, setVolume] = useState(0.7);
   const [isLoading, setIsLoading] = useState(true);
+  const [showUploader, setShowUploader] = useState(false);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+  const [currentTranscript, setCurrentTranscript] = useState(transcriptData);
 
   // Video control handlers
   useEffect(() => {
@@ -113,6 +117,19 @@ const VideoPlayer: React.FC = () => {
     }
   };
 
+  const handleVideoUrlChange = (url: string) => {
+    setCurrentVideoUrl(url);
+    setCurrentTime(0);
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+  };
+
+  const handleTranscriptUpload = (transcript: any[]) => {
+    setCurrentTranscript(transcript);
+    setCurrentTime(0);
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -137,7 +154,7 @@ const VideoPlayer: React.FC = () => {
               muted
               controls={false}
             >
-              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+              <source src={currentVideoUrl} type="video/mp4" />
               <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
@@ -209,8 +226,17 @@ const VideoPlayer: React.FC = () => {
                 </div>
 
                 <button 
+                  onClick={() => setShowUploader(true)}
+                  className="ml-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  title="Upload video and transcript"
+                >
+                  <Upload className="w-5 h-5 text-white" />
+                </button>
+
+                <button 
                   onClick={() => setShowBoard(!showBoard)}
                   className="ml-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  title="Toggle keywords board"
                 >
                   {showBoard ? (
                     <PanelLeftClose className="w-5 h-5 text-white" />
@@ -227,7 +253,7 @@ const VideoPlayer: React.FC = () => {
             <div className="w-[70%] h-[50vh] md:h-[60vh] lg:h-[70vh] bg-white border-l border-gray-200 relative z-10">
               <KeywordsBoard 
                 currentTime={currentTime} 
-                transcriptData={transcriptData}
+                transcriptData={currentTranscript}
               />
             </div>
           )}
@@ -235,7 +261,15 @@ const VideoPlayer: React.FC = () => {
       </div>
 
       {/* Transcript Section */}
-      <TranscriptViewer currentTime={currentTime} transcriptData={transcriptData} />
+      <TranscriptViewer currentTime={currentTime} transcriptData={currentTranscript} />
+
+      {/* File Uploader Modal */}
+      <FileUploader
+        isOpen={showUploader}
+        onClose={() => setShowUploader(false)}
+        onVideoUrlChange={handleVideoUrlChange}
+        onTranscriptUpload={handleTranscriptUpload}
+      />
     </div>
   );
 };

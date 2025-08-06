@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TranscriptItem } from '../types/transcript';
 import { Moon, Sun } from 'lucide-react';
 
@@ -9,6 +9,8 @@ interface KeywordsBoardProps {
 
 const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptData }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [displayedText, setDisplayedText] = useState('');
+  const [currentSentenceId, setCurrentSentenceId] = useState<number | null>(null);
 
   // Get current transcript item
   const getCurrentSentence = () => {
@@ -19,7 +21,35 @@ const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptDa
 
   const currentSentence = getCurrentSentence();
 
-  // Highlight keywords in the current text
+  // Typewriter effect
+  useEffect(() => {
+    if (!currentSentence) {
+      setDisplayedText('');
+      setCurrentSentenceId(null);
+      return;
+    }
+
+    // If it's a new sentence, start typewriter effect
+    if (currentSentence.id !== currentSentenceId) {
+      setCurrentSentenceId(currentSentence.id);
+      setDisplayedText('');
+      
+      const text = currentSentence.text;
+      let index = 0;
+      
+      const typeWriter = () => {
+        if (index < text.length) {
+          setDisplayedText(text.slice(0, index + 1));
+          index++;
+          setTimeout(typeWriter, 30); // Adjust speed here (lower = faster)
+        }
+      };
+      
+      typeWriter();
+    }
+  }, [currentSentence, currentSentenceId]);
+
+  // Highlight keywords in the displayed text
   const highlightKeywords = (text: string, keywords: any[]) => {
     if (!keywords || keywords.length === 0) return text;
 
@@ -59,14 +89,15 @@ const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptDa
         )}
       </button>
 
-      {/* Current Speech Text */}
+      {/* Current Speech Text with Typewriter Effect */}
       <div className="flex-1 flex items-center justify-center p-8">
         {currentSentence ? (
           <div className="text-center max-w-full">
             <p 
               className="text-2xl md:text-3xl lg:text-4xl leading-relaxed font-medium"
               dangerouslySetInnerHTML={{
-                __html: highlightKeywords(currentSentence.text, currentSentence.keywords)
+                __html: highlightKeywords(displayedText, currentSentence.keywords) + 
+                       (displayedText.length < currentSentence.text.length ? '<span class="animate-pulse">|</span>' : '')
               }}
             />
           </div>
