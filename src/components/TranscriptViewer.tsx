@@ -71,23 +71,6 @@ const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
                   }`}>
                     {item.text}
                   </p>
-                  
-                  {item.keywords.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {item.keywords.map((keyword, idx) => (
-                        <span
-                          key={idx}
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            isActive
-                              ? 'bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 font-medium border border-purple-200'
-                              : 'bg-gray-50 text-gray-500 border border-gray-200'
-                          }`}
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
