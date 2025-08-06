@@ -254,6 +254,7 @@ const VideoPlayer: React.FC = () => {
               <KeywordsBoard 
                 currentTime={currentTime} 
                 transcriptData={currentTranscript}
+                isPlaying={isPlaying}
               />
             </div>
           )}

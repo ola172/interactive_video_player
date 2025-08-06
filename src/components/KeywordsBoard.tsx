@@ -5,12 +5,14 @@ import { Moon, Sun } from 'lucide-react';
 interface KeywordsBoardProps {
   currentTime: number;
   transcriptData: TranscriptItem[];
+  isPlaying: boolean;
 }
 
-const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptData }) => {
+const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptData, isPlaying }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [displayedText, setDisplayedText] = useState('');
   const [currentSentenceId, setCurrentSentenceId] = useState<number | null>(null);
+  const [typewriterActive, setTypewriterActive] = useState(false);
 
   // Get current transcript item
   const getCurrentSentence = () => {
@@ -26,6 +28,7 @@ const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptDa
     if (!currentSentence) {
       setDisplayedText('');
       setCurrentSentenceId(null);
+      setTypewriterActive(false);
       return;
     }
 
@@ -33,21 +36,56 @@ const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptDa
     if (currentSentence.id !== currentSentenceId) {
       setCurrentSentenceId(currentSentence.id);
       setDisplayedText('');
+      setTypewriterActive(false);
       
+      // Only start typewriter if video is playing
+      if (isPlaying) {
+        setTypewriterActive(true);
+        const text = currentSentence.text;
+        let index = 0;
+        
+        const typeWriter = () => {
+          if (index < text.length && isPlaying) {
+            setDisplayedText(text.slice(0, index + 1));
+            index++;
+            setTimeout(typeWriter, 30);
+          } else if (!isPlaying) {
+            setTypewriterActive(false);
+          } else {
+            setTypewriterActive(false);
+          }
+        };
+        
+        typeWriter();
+      }
+    }
+  }, [currentSentence, currentSentenceId, isPlaying]);
+
+  // Handle play/pause changes for existing sentence
+  useEffect(() => {
+    if (!currentSentence || currentSentence.id !== currentSentenceId) return;
+
+    if (isPlaying && displayedText.length < currentSentence.text.length) {
+      // Resume typewriter
+      setTypewriterActive(true);
       const text = currentSentence.text;
-      let index = 0;
+      let index = displayedText.length;
       
       const typeWriter = () => {
-        if (index < text.length) {
+        if (index < text.length && isPlaying) {
           setDisplayedText(text.slice(0, index + 1));
           index++;
-          setTimeout(typeWriter, 30); // Adjust speed here (lower = faster)
+          setTimeout(typeWriter, 30);
+        } else {
+          setTypewriterActive(false);
         }
       };
       
       typeWriter();
+    } else if (!isPlaying) {
+      setTypewriterActive(false);
     }
-  }, [currentSentence, currentSentenceId]);
+  }, [isPlaying, currentSentence, currentSentenceId, displayedText.length]);
 
   // Highlight keywords in the displayed text
   const highlightKeywords = (text: string, keywords: any[]) => {
@@ -97,14 +135,14 @@ const KeywordsBoard: React.FC<KeywordsBoardProps> = ({ currentTime, transcriptDa
               className="text-2xl md:text-3xl lg:text-4xl leading-relaxed font-medium"
               dangerouslySetInnerHTML={{
                 __html: highlightKeywords(displayedText, currentSentence.keywords) + 
-                       (displayedText.length < currentSentence.text.length ? '<span class="animate-pulse">|</span>' : '')
+                       (typewriterActive && displayedText.length < currentSentence.text.length ? '<span class="animate-pulse">|</span>' : '')
               }}
             />
           </div>
         ) : (
           <div className="text-center">
             <p className={`text-xl font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Speech will appear here as the video plays
+              {isPlaying ? 'Waiting for speech...' : 'Press play to start'}
             </p>
           </div>
         )}
