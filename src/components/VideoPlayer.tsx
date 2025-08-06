@@ -140,9 +140,20 @@ const VideoPlayer: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Upload Button - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <button 
+          onClick={() => setShowUploader(true)}
+          className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+          title="Upload video and transcript"
+        >
+          <Upload className="w-6 h-6" />
+        </button>
+      </div>
+
       {/* Video + Board Container */}
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
-        <div className="flex flex-row bg-white">
+        <div className="flex flex-row bg-white relative">
           {/* Video Player */}
           <div className={`${showBoard ? 'w-[30%]' : 'w-full'} relative z-0 bg-black transition-all duration-300`}>
             <video
@@ -221,21 +232,14 @@ const VideoPlayer: React.FC = () => {
                     step="0.01"
                     value={volume}
                     onChange={handleVolumeChange}
-                    className="w-20 h-1 bg-gray-400 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                    className="w-16 md:w-20 h-1 bg-gray-400 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white flex-shrink-0"
                   />
                 </div>
 
-                <button 
-                  onClick={() => setShowUploader(true)}
-                  className="ml-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                  title="Upload video and transcript"
-                >
-                  <Upload className="w-5 h-5 text-white" />
-                </button>
-
+                {/* Toggle Board Button - Always Visible */}
                 <button 
                   onClick={() => setShowBoard(!showBoard)}
-                  className="ml-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  className="ml-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors flex-shrink-0 min-w-[40px]"
                   title="Toggle keywords board"
                 >
                   {showBoard ? (
@@ -247,6 +251,15 @@ const VideoPlayer: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Toggle Board Button - Alternative Position for Small Screens */}
+          <button 
+            onClick={() => setShowBoard(!showBoard)}
+            className={`absolute top-4 left-4 z-20 p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white transition-colors ${showBoard ? 'hidden' : 'block'} md:hidden`}
+            title="Toggle keywords board"
+          >
+            <PanelLeftOpen className="w-5 h-5" />
+          </button>
 
           {/* Interactive Keywords Board */}
           {showBoard && (
