@@ -1,6 +1,4 @@
-import { TranscriptItem } from '../types/transcript';
-
-export const transcriptData: TranscriptItem[] =[
+[
   {
     "id": 1,
     "startTime": 0.2,
@@ -347,4 +345,4 @@ export const transcriptData: TranscriptItem[] =[
       {"word": "resilience", "start": 204.0, "end": 205.581}
     ]
   }
-];
+]

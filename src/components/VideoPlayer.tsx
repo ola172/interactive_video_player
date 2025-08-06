@@ -14,7 +14,7 @@ const VideoPlayer: React.FC = () => {
   const [volume, setVolume] = useState(0.7);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploader, setShowUploader] = useState(false);
-  const [currentVideoUrl, setCurrentVideoUrl] = useState('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('https://files2.heygen.ai/aws_pacific/avatar_tmp/496eec5fcb694ca6b7a598c6815d6fd5/d15025bcda9b4fe38c49b1f5f7a15621.mp4?Expires=1755094815&Signature=qJlTdL8nytOQXlYPX6wXP6OCZwNFqJbnWS~vPOdBfhvjvoaYcpxl1TE76qw4oOO6OPMYvO4uODZqZ4M5EnjInX2HEiLyknxOctLLCY0xaIWRhX4Jblqlqnt5DKTROrIx~NjLJDaCuePsJ5BFwXzpOBZRd4yRPB1llwUYdHEQrHtyEQ92gABshmhSKgOgopu4f6jF28I3bNB7uC6ID-DidqYUUvDWvW9uQEIySjN9GW5CZ7AebpGqvahJ~j6B0EkEhXKdptchmflUvvJY6mkm6W7bKu5~lbHUB3JGwchtAKmNKysOc970Vlpvt-0zZS-0-dVkz6GCLWMlhHi9C0MoGg__&Key-Pair-Id=K38HBHX5LX3X2H');
   const [currentTranscript, setCurrentTranscript] = useState(transcriptData);
 
   // Video control handlers
@@ -166,7 +166,7 @@ const VideoPlayer: React.FC = () => {
               controls={false}
             >
               <source src={currentVideoUrl} type="video/mp4" />
-              <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4" />
+              {/* <source src="" type="video/mp4" /> */}
               Your browser does not support the video tag.
             </video>
 
