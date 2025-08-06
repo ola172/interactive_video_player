@@ -18,6 +18,10 @@ const VideoPlayer: React.FC = () => {
     const video = videoRef.current;
     if (!video) return;
 
+    // Set initial properties
+    video.volume = volume;
+    video.muted = false;
+
     const handleTimeUpdate = () => setCurrentTime(video.currentTime);
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
@@ -29,6 +33,10 @@ const VideoPlayer: React.FC = () => {
     const handlePause = () => setIsPlaying(false);
     const handleWaiting = () => setIsLoading(true);
     const handlePlaying = () => setIsLoading(false);
+    const handleError = (e: Event) => {
+      console.error('Video error:', e);
+      setIsLoading(false);
+    };
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -38,9 +46,7 @@ const VideoPlayer: React.FC = () => {
     video.addEventListener('pause', handlePause);
     video.addEventListener('waiting', handleWaiting);
     video.addEventListener('playing', handlePlaying);
-
-    // Set initial volume
-    video.volume = volume;
+    video.addEventListener('error', handleError);
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
@@ -51,6 +57,7 @@ const VideoPlayer: React.FC = () => {
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('waiting', handleWaiting);
       video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('error', handleError);
     };
   }, [volume]);
 
@@ -59,13 +66,26 @@ const VideoPlayer: React.FC = () => {
     if (!video) return;
 
     try {
+      setIsLoading(true);
       if (isPlaying) {
         video.pause();
+        setIsLoading(false);
       } else {
         await video.play();
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Error playing video:', error);
+      setIsLoading(false);
+      // Try to play with user interaction
+      if (!isPlaying) {
+        try {
+          video.muted = true;
+          await video.play();
+        } catch (mutedError) {
+          console.error('Error playing muted video:', mutedError);
+        }
+      }
     }
   };
 
@@ -111,12 +131,14 @@ const VideoPlayer: React.FC = () => {
             <video
               ref={videoRef}
               className="w-full h-[50vh] md:h-[60vh] lg:h-[70vh] object-cover"
-              poster="https://images.pexels.com/photos/5212320/pexels-photo-5212320.jpeg?auto=compress&cs=tinysrgb&w=800"
-              preload="metadata"
+              poster="https://images.pexels.com/photos/5212320/pexels-photo-5212320.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              preload="auto"
               playsInline
-              crossOrigin="anonymous"
+              muted
+              controls={false}
             >
-              <source src="https://files2.heygen.ai/aws_pacific/avatar_tmp/496eec5fcb694ca6b7a598c6815d6fd5/500b656561814ff2aac67549fd27ae18.mp4?Expires=1754476164&Signature=N5eCkhjcmx9PddjTt4fjr72b4TgHVSWyT3GqrQcIvO0vlN6Zf2en3e3noOfCq1YfnWPtUaEKpqhoSmzBAHfTYn~IkYqdm159eZiyZuPS2BPxw8Vu~zZACPuKgiTwr8u6LtN6ZDV4tQa8QYWbJGfAeciKdKCiVtsGdIyKWGC5uGDorlu9vaKAaIxPI79ht6qDm3LZtxyfcHtb39rWiETER~YxIgVp2LSzArdA8JnCwNv6SftqybPW0PgVqYwUi7tq73vIfUpcKNJ2ZWQbAFE-MXYzRDiCHBipAB3-zGpfYGcYvfBud6BG3hP632HOb8HDYSFFVSdQWWoBf-5MeFPFEw__&Key-Pair-Id=K38HBHX5LX3X2H" type="video/mp4" />
+              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+              <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
 
